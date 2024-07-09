@@ -27,7 +27,7 @@ target_columns: the names of the targets you want to keep
 method: the cleaning method. 
     method = 1: 
     For the train set, fills NaN's from the past and future for up to 4 days then drops the remaining NaN.
-    For the test set, fills NaN's from the past and future for up to 6 days.
+    For the test set, fills NaN's from the past and future for up to 6 days. After this, if there is still NaN's left, those NaN's are replaced with their modes.
 
 --------
 OUTPUTS:
@@ -238,37 +238,43 @@ def Get_data(path_train_data, path_test_data, feature_columns_in, target_columns
     if method == 1:
         #----- Train set:
         # Fill NaN with the forward & backward-fill for up to 2 days from the past and future each
-        for i in range(0,2):
-            df_train.fillna(method='ffill', axis=0, inplace=True, limit=1)
-            df_train.fillna(method='bfill', axis=0, inplace=True, limit=1)
+        place_IDs = df_train.Place_ID.unique()
+        for place in place_IDs:
+            for i in range(0,2):
+                df_train[df_train.Place_ID == place] = df_train[df_train.Place_ID == place].fillna(method='ffill', axis=0, limit=1)
+                df_train[df_train.Place_ID == place] = df_train[df_train.Place_ID == place].fillna(method='bfill', axis=0, limit=1)
 
         if True:
             # Drop the remaining NaN's
-            df_train.dropna(axis=0, how='any', inplace=True)
+            df_train = df_train.dropna(axis=0, how='any')
         else:
-            # Fill with the mean value at each location
+            # Fill with the mode value at each location
             place_IDs = df_train.Place_ID.unique()
             for place in place_IDs:
-                df_train[df_train.Place_ID == place].fillna(value=df_train[df_train.Place_ID == place].mean(numeric_only=True), axis=0, inplace=True)
+                df_train[df_train.Place_ID == place] = df_train[df_train.Place_ID == place].fillna(value=df_train[df_train.Place_ID == place].mode(numeric_only=True), axis=0)
         
         #----- Test set
         if True:
             # Fill NaN with the forward & backward-fill for up to 3 days from the past and future each
-            for i in range(0,3):
-                df_test.fillna(method='ffill', axis=0, inplace=True, limit=1)
-                df_test.fillna(method='bfill', axis=0, inplace=True, limit=1)
-        if False:
-            # Drop the remaining NaN's
-            df_test.dropna(axis=0, how='any', inplace=True)
-        if False:
-            # Fill with the mean value at each location
             place_IDs = df_test.Place_ID.unique()
             for place in place_IDs:
-                df_test[df_test.Place_ID == place].fillna(value=df_test[df_test.Place_ID == place].mean(numeric_only=True), axis=0, inplace=True)
+                for i in range(0,3):
+                    df_test[df_test.Place_ID == place] = df_test[df_test.Place_ID == place].fillna(method='ffill', axis=0, limit=1)
+                    df_test[df_test.Place_ID == place] = df_test[df_test.Place_ID == place].fillna(method='bfill', axis=0, limit=1)
+
+        if False:
+            # Drop the remaining NaN's
+            df_test = df_test.dropna(axis=0, how='any')
+        
+        if True:
+            # Fill with the mode value at each location
+            place_IDs = df_test.Place_ID.unique()
+            for place in place_IDs:
+                df_test[df_test.Place_ID == place] = df_test[df_test.Place_ID == place].fillna(value=df_test[df_test.Place_ID == place].mode(numeric_only=True), axis=0)
                         
     # Separate the train features and train targets
     y_train = df_train[target_columns]
-    df_train.drop(columns=target_columns, inplace=True)
+    df_train = df_train.drop(columns=target_columns)
         
     return df_train, y_train, df_test
     

@@ -56,10 +56,13 @@ def Plot_time_series_of_train_set(plot_at_these_places):
         # Plot the time series comparison between the target and each feature 
         for ifig in range(1, len(col)):
             fig, ax1 = plt.subplots(1,1)
-            sns.lineplot(data=data.iloc[:,[idate, itarget, ifig]])
+            plt.plot(data[data.columns[idate]], data[data.columns[itarget]], label=data.columns[itarget] )
+            plt.plot(data[data.columns[idate]], data[data.columns[ifig]], label=data.columns[ifig] )
             plt.xlabel('days')
             plt.ylabel('z-score')
             plt.title('Place ID = ' + place_IDs[use_this_place])
+            plt.legend()
+            
 
         # Plot for checking multicolinearity
         fig, ax1 = plt.subplots(1,1)
@@ -120,10 +123,9 @@ if __name__ == "__main__":
         \
         'L3_O3_O3_column_number_density', \
         'L3_CO_H2O_column_number_density' ]
-        #'L3_AER_AI_absorbing_aerosol_index'
         
     X_train, y_train, X_test = Get_data(path_train_data, path_test_data, feature_columns, target_columns, method = 1)
 
     # Plot
-    plot_at_these_places = [0] #[0:340]
+    plot_at_these_places = [0] #300 is a strange data. [0, 100, 340]
     Plot_time_series_of_train_set(plot_at_these_places)
