@@ -49,7 +49,6 @@ path_test_data  = '../data/Test.csv'
 target_columns = ['target', 'target_min', 'target_max', 'target_variance', 'target_count']
     
 feature_columns = [ \
-    'Place_ID X Date', \
     'Date', \
     'Place_ID', \
     'precipitable_water_entire_atmosphere', \
@@ -236,7 +235,7 @@ def Get_data(path_train_data, path_test_data, feature_columns_in, target_columns
 
     # Fill or drop NaN's
     if method == 1:
-        #----- Train set:
+        #----- Train set:        
         # Fill NaN with the forward & backward-fill for up to 2 days from the past and future each
         place_IDs = df_train.Place_ID.unique()
         for place in place_IDs:
@@ -252,6 +251,10 @@ def Get_data(path_train_data, path_test_data, feature_columns_in, target_columns
             place_IDs = df_train.Place_ID.unique()
             for place in place_IDs:
                 df_train[df_train.Place_ID == place] = df_train[df_train.Place_ID == place].fillna(value=df_train[df_train.Place_ID == place].mode(numeric_only=True), axis=0)
+        
+        if True:
+            # Drop outlier target values
+            df_train = df_train[df_train.target < 250]
         
         #----- Test set
         if True:
